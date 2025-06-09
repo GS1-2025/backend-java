@@ -11,6 +11,9 @@
 ## 💬 Vídeo demonstrando o funcionamento  
 [Youtube](https://youtu.be/M-hwVPVmYOA?si=GZY7YPaV2qzo3apV)  
 
+## 💬 Vídeo rodando na nuvem  
+[Youtube](https://www.youtube.com/watch?v=D6uLlUSuCcI)
+
 ## 🔌 Circuito no Wokwi  
 [Wokwi](https://wokwi.com/projects/432380308913932289)  
 
