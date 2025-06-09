@@ -1,105 +1,58 @@
-package br.com.fiap.globalsolution2025.controller;
+package br.com.fiap.globalsolution2025.service;
 
 import br.com.fiap.globalsolution2025.dto.request.AlertaRequest;
 import br.com.fiap.globalsolution2025.dto.request.UpdateAlertaRequest;
-import br.com.fiap.globalsolution2025.dto.response.AlertaResponse;
 import br.com.fiap.globalsolution2025.entity.Alerta;
 import br.com.fiap.globalsolution2025.mapper.AlertaMapper;
-import br.com.fiap.globalsolution2025.service.AlertaService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import br.com.fiap.globalsolution2025.repository.AlertaRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.stereotype.Service;
 
-import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.UUID;
 
-@RestController
-@RequestMapping("/alertas")
-public class AlertaController {
+import static org.springframework.util.ClassUtils.isPresent;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 
-    private final AlertaService service;
+@Service
+public class AlertaService {
+
+    private final AlertaRepository repository;
     private final AlertaMapper mapper;
 
-    public AlertaController(AlertaService service, AlertaMapper mapper) {
-        this.service = service;
+    public AlertaService(AlertaRepository repository, AlertaMapper mapper) {
+        this.repository = repository;
         this.mapper = mapper;
     }
 
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody @Valid AlertaRequest request) {
-        try {
-            Alerta alerta = service.save(request);
-            AlertaResponse response = mapper.toResponse(alerta, true);
-            URI location = URI.create("/alertas/" + alerta.getId());
-            return ResponseEntity.created(location).body(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao criar alerta: " + e.getMessage());
-        }
+    public Alerta save(AlertaRequest request) {
+        Alerta alerta = mapper.toEntity(request, new Alerta());
+        return repository.save(alerta);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable Long id) {
-        try {
-            Alerta alerta = service.getById(id);
-            if (alerta == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Alerta não encontrado");
-            }
-            return ResponseEntity.ok(mapper.toResponse(alerta, false));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao buscar alerta: " + e.getMessage());
-        }
+    public Alerta getById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Alerta não encontrado: " + id));
     }
 
-    @GetMapping
-    public ResponseEntity<?> getAll() {
-        try {
-            List<AlertaResponse> list = service.getAll()
-                    .stream()
-                    .map(alerta -> {
-                        try {
-                            return mapper.toResponse(alerta, true);
-                        } catch (Exception e) {
-                            throw new RuntimeException("Erro ao mapear alerta: " + e.getMessage());
-                        }
-                    })
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(list);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao listar alertas: " + e.getMessage());
-        }
+    public List<Alerta> getAll() {
+        return repository.findAll();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody @Valid UpdateAlertaRequest request) {
-        try {
-            Alerta alerta = service.update(id, request);
-            if (alerta == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Alerta não encontrado");
-            }
-            return ResponseEntity.ok(mapper.toResponse(alerta, true));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao atualizar alerta: " + e.getMessage());
-        }
+    public Alerta update(Long id, UpdateAlertaRequest request) throws Exception {
+        Alerta alerta = repository.findById(id)
+                .orElseThrow(() -> new Exception("Alerta não encontrado"));
+        mapper.toEntity(request, alerta);
+        return repository.save(alerta);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        try {
-            Alerta alerta = service.getById(id);
-            if (alerta == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Alerta não encontrado");
-            }
-            service.delete(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao deletar alerta: " + e.getMessage());
+    public void delete(Long id) {
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Alerta não encontrado: " + id);
         }
+        repository.deleteById(id);
     }
 }
