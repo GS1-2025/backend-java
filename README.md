@@ -9,7 +9,7 @@
 [Youtube](https://youtu.be/WJmfimRwF8w)  
 
 ## 💬 Vídeo demonstrando o funcionamento  
-[Youtube](https://youtu.be/M-hwVPVmYOA?si=GZY7YPaV2qzo3apV)  
+[Youtube](https://www.youtube.com/playlist?list=PLsjNwOw0FQHs3V-1y2sqQyshLFREi9tOE)  
 
 ## 💬 Vídeo rodando na nuvem  
 [Youtube](https://www.youtube.com/watch?v=D6uLlUSuCcI)
